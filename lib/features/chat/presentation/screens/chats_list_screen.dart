@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:instagram_clone/generated/app_localizations.dart';
+import 'package:instagram_clone/features/auth/domain/entities/user.dart';
+import 'package:instagram_clone/features/chat/domain/entities/chat.dart';
+import 'package:instagram_clone/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:instagram_clone/features/chat/presentation/screens/chat_detail_screen.dart';
+
+class ChatsListScreen extends StatefulWidget {
+  final User currentUser;
+
+  const ChatsListScreen({
+    Key? key,
+    required this.currentUser,
+  }) : super(key: key);
+
+  @override
+  State<ChatsListScreen> createState() => _ChatsListScreenState();
+}
+
+class _ChatsListScreenState extends State<ChatsListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadChats();
+    _subscribeToChats();
+  }
+
+  void _loadChats() {
+    context.read<ChatBloc>().add(LoadChatsEvent(userId: widget.currentUser.id));
+  }
+
+  void _subscribeToChats() {
+    context.read<ChatBloc>().add(SubscribeToChatsEvent(userId: widget.currentUser.id));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.messages),
+      ),
+      body: BlocConsumer<ChatBloc, ChatState>(
+        listener: (context, state) {
+          if (state is ChatError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is ChatsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ChatsLoaded) {
+            return _buildChatsList(state.chats);
+          } else {
+            return _buildChatsList([]);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildChatsList(List<Chat> chats) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    if (chats.isEmpty) {
+      return Center(
+        child: Text(l10n.noMessages),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: chats.length,
+      itemBuilder: (context, index) {
+        final chat = chats[index];
+        final otherUser = chat.otherUser;
+        
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: otherUser?.profileImageUrl != null
+                ? NetworkImage(otherUser!.profileImageUrl!)
+                : null,
+            child: otherUser?.profileImageUrl == null
+                ? const Icon(Icons.person)
+                : null,
+          ),
+          title: Text(otherUser?.username ?? 'Unknown User'),
+          subtitle: Text(
+            chat.hasUnreadMessages ? 'New messages' : 'No new messages',
+            style: TextStyle(
+              fontWeight: chat.hasUnreadMessages ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          trailing: chat.hasUnreadMessages
+              ? Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                )
+              : null,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatDetailScreen(
+                  chat: chat,
+                  currentUser: widget.currentUser,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
