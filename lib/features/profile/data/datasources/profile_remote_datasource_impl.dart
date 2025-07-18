@@ -65,7 +65,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final fileName =
           '$userId/${DateTime.now().millisecondsSinceEpoch}.${image.path.split('.').last}';
-      final response = await supabaseClient.storage
+      await supabaseClient.storage
           .from(profileImagesBucket)
           .upload(
             fileName,

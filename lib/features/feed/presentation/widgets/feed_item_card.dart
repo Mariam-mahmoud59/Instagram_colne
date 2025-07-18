@@ -45,9 +45,7 @@ class FeedItemCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    feedItem.user.username ??
-                        feedItem.user.email ??
-                        'Unknown User',
+                    feedItem.user.username ?? feedItem.user.email,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
