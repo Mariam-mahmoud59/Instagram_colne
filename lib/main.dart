@@ -9,8 +9,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase (Check if already done in di.init - it is, but keep for clarity or refactor di)
-  // Consider moving Supabase init solely into di.init if preferred
   await Supabase.initialize(
     url: SupabaseConstants.supabaseUrl,
     anonKey: SupabaseConstants.supabaseAnonKey,
