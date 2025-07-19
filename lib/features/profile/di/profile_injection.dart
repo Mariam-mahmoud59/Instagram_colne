@@ -8,6 +8,7 @@ import '../data/repositories/profile_repository_impl.dart'
     hide ProfileRemoteDataSourceImpl;
 import '../domain/repositories/profile_repository.dart';
 import '../domain/usecases/get_user_profile.dart';
+import '../domain/usecases/get_profile.dart';
 import '../domain/usecases/update_user_profile.dart';
 import '../domain/usecases/get_user_posts.dart'; // If user posts are managed by profile feature
 import '../presentation/bloc/profile_bloc.dart';
@@ -23,6 +24,7 @@ void initProfile(GetIt sl) {
   );
 
   // Use cases
+  sl.registerLazySingleton<GetProfile>(() => GetProfile(sl()));
   sl.registerLazySingleton(() => GetUserProfile(sl()));
   sl.registerLazySingleton(() => UpdateUserProfile(sl()));
   sl.registerLazySingleton(() => GetUserPosts(sl()));

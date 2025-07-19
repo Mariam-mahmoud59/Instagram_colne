@@ -4,6 +4,9 @@ import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:instagram_clone/features/auth/presentation/screens/login_screen.dart';
 import 'package:instagram_clone/features/auth/presentation/screens/splash_screen.dart';
 import 'package:instagram_clone/features/feed/presentation/screens/feed_screen.dart';
+import 'package:instagram_clone/features/feed/presentation/bloc/feed_bloc.dart';
+import 'package:instagram_clone/core/di/injection_container.dart' as di;
+import 'package:instagram_clone/features/common_widgets/main_navigation_screen.dart';
 
 class AppView extends StatelessWidget {
   const AppView({super.key});
@@ -16,13 +19,13 @@ class AppView extends StatelessWidget {
       theme: ThemeData.light(), // Placeholder
       darkTheme: ThemeData.dark(), // Placeholder
       themeMode: ThemeMode.system, // Or load from settings
+      debugShowCheckedModeBanner: false,
       // Add localization delegates later
       home: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
-            // Navigate to the main app screen (e.g., Home Screen)
-            // You might want a more sophisticated navigation setup later (e.g., GoRouter)
-            return const FeedScreen(); //
+            // Show Instagram-like navigation bar after login
+            return const MainNavigationScreen();
           } else if (state is Unauthenticated || state is AuthFailure) {
             // Navigate to the Login Screen
             return const LoginScreen(); // Placeholder for login screen

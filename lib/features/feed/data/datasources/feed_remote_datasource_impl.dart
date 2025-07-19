@@ -20,7 +20,7 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
           .from('posts') // Assuming 'posts' table contains feed items
           .select('''
             *,
-            profiles(username, profile_picture_url),
+            profiles(username, profile_image_url as profile_picture_url),
             likes(id),
             comments(id)
           ''') // Select post details, profile info, and count likes/comments

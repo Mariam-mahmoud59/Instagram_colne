@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:instagram_clone/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:instagram_clone/features/profile/presentation/screens/edit_profile_screen.dart'; // To be created
+import 'package:instagram_clone/features/settings/presentation/screens/settings_screen.dart';
+import 'package:instagram_clone/features/common_widgets/app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // For network images
 
 class ProfileScreen extends StatefulWidget {
@@ -31,52 +33,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isOwnProfile = currentAuthUserId == widget.userId;
 
     return Scaffold(
-      appBar: AppBar(
-        title: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoaded) {
-              return Text(state.profile.username); // Display username in AppBar
-            } else if (state is ProfileLoading) {
-              return const Text('Loading...');
-            } else {
-              return const Text('Profile');
-            }
-          },
-        ),
+      appBar: CustomAppBar(
+        title: (context.read<ProfileBloc>().state is ProfileLoaded)
+            ? (context.read<ProfileBloc>().state as ProfileLoaded)
+                .profile
+                .username
+            : 'Profile',
         actions: [
           if (isOwnProfile)
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Navigate to Edit Profile Screen, passing the current profile data
                 final currentState = context.read<ProfileBloc>().state;
                 if (currentState is ProfileLoaded) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => EditProfileScreen(currentProfile: currentState.profile),
+                      builder: (_) => EditProfileScreen(
+                          currentProfile: currentState.profile),
                     ),
                   ).then((_) {
-                    // Reload profile data after returning from edit screen
-                    context.read<ProfileBloc>().add(LoadProfile(userId: widget.userId));
+                    context
+                        .read<ProfileBloc>()
+                        .add(LoadProfile(userId: widget.userId));
                   });
                 } else {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                     const SnackBar(content: Text('Profile data not loaded yet.')),
-                   );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Profile data not loaded yet.')),
+                  );
                 }
               },
             ),
-           if (isOwnProfile) // Add logout button for own profile
-             IconButton(
-               icon: const Icon(Icons.logout),
-               onPressed: () {
-                 context.read<AuthBloc>().add(AuthLogoutRequested());
-                 // Navigation is handled by AppView based on AuthBloc state changes
-               },
-             ),
-           // TODO: Add Follow/Unfollow button if not own profile
+          if (isOwnProfile)
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SettingsScreen(userId: widget.userId),
+                  ),
+                );
+              },
+            ),
+          if (isOwnProfile)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+            ),
         ],
+        showDefaultActions: false,
       ),
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
@@ -86,9 +95,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             final profile = state.profile;
             return RefreshIndicator(
               onRefresh: () async {
-                 context.read<ProfileBloc>().add(LoadProfile(userId: widget.userId));
+                context
+                    .read<ProfileBloc>()
+                    .add(LoadProfile(userId: widget.userId));
               },
-              child: ListView(
+              child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -97,8 +108,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         CircleAvatar(
                           radius: 40,
                           backgroundImage: profile.profileImageUrl != null
-                              ? CachedNetworkImageProvider(profile.profileImageUrl!)
-                              : null, // Use CachedNetworkImageProvider
+                              ? CachedNetworkImageProvider(
+                                  profile.profileImageUrl!)
+                              : null,
                           child: profile.profileImageUrl == null
                               ? const Icon(Icons.person, size: 40)
                               : null,
@@ -109,8 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildStatColumn('Posts', profile.postCount),
-                              _buildStatColumn('Followers', profile.followerCount),
-                              _buildStatColumn('Following', profile.followingCount),
+                              _buildStatColumn(
+                                  'Followers', profile.followerCount),
+                              _buildStatColumn(
+                                  'Following', profile.followingCount),
                             ],
                           ),
                         ),
@@ -122,44 +136,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (profile.fullName != null && profile.fullName!.isNotEmpty)
-                          Text(profile.fullName!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        if (profile.fullName != null &&
+                            profile.fullName!.isNotEmpty)
+                          Text(profile.fullName!,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                         if (profile.bio != null && profile.bio!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(profile.bio!),
                           ),
+                        
                       ],
                     ),
                   ),
-                  const Divider(),
-                  // TODO: Implement Post Grid View
-                  GridView.builder(
-                     shrinkWrap: true, // Important inside ListView
-                     physics: const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
-                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                       crossAxisCount: 3,
-                       crossAxisSpacing: 2,
-                       mainAxisSpacing: 2,
-                     ),
-                     itemCount: 0, // Replace with actual post count
-                     itemBuilder: (context, index) {
-                       // Replace with actual post widget
-                       return Container(
-                         color: Colors.grey[300],
-                         child: const Center(child: Text('Post')), // Placeholder
-                       );
-                     },
-                   ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isOwnProfile
+                                ? () {
+                                    final currentState =
+                                        context.read<ProfileBloc>().state;
+                                    if (currentState is ProfileLoaded) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => EditProfileScreen(
+                                              currentProfile:
+                                                  currentState.profile),
+                                        ),
+                                      ).then((_) {
+                                        context.read<ProfileBloc>().add(
+                                            LoadProfile(userId: widget.userId));
+                                      });
+                                    }
+                                  }
+                                : () {
+                                    // زر متابعة (Follow)
+                                  },
+                            child:
+                                Text(isOwnProfile ? 'Edit Profile' : 'Follow'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black,
+                              side: const BorderSide(color: Colors.grey),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                        if (!isOwnProfile) const SizedBox(width: 8),
+                        if (!isOwnProfile)
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {},
+                              child: const Text('Message'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // تبويبات (شبكة، فيديو، إلخ)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: const [
+                        Icon(Icons.grid_on, size: 28),
+                        Icon(Icons.video_collection_outlined, size: 28),
+                        Icon(Icons.person_pin_outlined, size: 28),
+                      ],
+                    ),
+                  ),
+                  // شبكة الصور
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 2,
+                        mainAxisSpacing: 2,
+                      ),
+                      itemCount: 12, // عدل حسب عدد المنشورات الحقيقي
+                      itemBuilder: (context, index) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Center(child: Icon(Icons.image)),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             );
           } else if (state is ProfileError) {
             return Center(
-              child: Text('Failed to load profile: ${state.message}'),
-            );
+                child: Text('Failed to load profile: ${state.message}'));
           } else {
-            // Initial state or unexpected state
             return const Center(child: Text('Loading profile...'));
           }
         },
@@ -180,11 +258,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           margin: const EdgeInsets.only(top: 4),
           child: Text(
             label,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: Colors.grey),
+            style: const TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w400, color: Colors.grey),
           ),
         ),
       ],
     );
   }
 }
-

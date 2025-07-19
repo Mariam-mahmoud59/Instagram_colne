@@ -13,6 +13,32 @@ class VideoExploreScreen extends StatefulWidget {
 }
 
 class _VideoExploreScreenState extends State<VideoExploreScreen> {
+  String _formatDate(DateTime date) {
+    const months = [
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return '${months[date.month]} ${date.day}';
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
   final Map<int, VideoPlayerController> _videoControllers = {};
@@ -42,7 +68,7 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
 
     final controller = VideoPlayerController.network(videoUrl);
     _videoControllers[index] = controller;
-    
+
     controller.initialize().then((_) {
       // Start playing if this is the current visible video
       if (_currentPage == index) {
@@ -59,26 +85,26 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
     if (_videoControllers.containsKey(_currentPage)) {
       _videoControllers[_currentPage]!.pause();
     }
-    
+
     // Play the current video
     if (_videoControllers.containsKey(page)) {
       _videoControllers[page]!.play();
       _videoControllers[page]!.setLooping(true);
     }
-    
+
     setState(() {
       _currentPage = page;
     });
-    
+
     // Load more videos when approaching the end
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser != null && page >= _videoControllers.length - 2) {
       context.read<PostBloc>().add(
-        LoadVideoExplorePosts(
-          limit: 5,
-          offset: _videoControllers.length,
-        ),
-      );
+            LoadVideoExplorePosts(
+              limit: 5,
+              offset: _videoControllers.length,
+            ),
+          );
     }
   }
 
@@ -91,7 +117,8 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
           if (state is VideoExplorePostsLoaded) {
             // Initialize video controllers for new videos
             for (int i = 0; i < state.posts.length; i++) {
-              if (state.posts[i].type == PostType.video && state.posts[i].mediaUrls.isNotEmpty) {
+              if (state.posts[i].type == PostType.video &&
+                  state.posts[i].mediaUrls.isNotEmpty) {
                 _initializeVideoController(i, state.posts[i].mediaUrls.first);
               }
             }
@@ -103,7 +130,7 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
               child: CircularProgressIndicator(color: Colors.white),
             );
           }
-          
+
           if (state is PostsLoadFailure) {
             return Center(
               child: Text(
@@ -112,12 +139,14 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
               ),
             );
           }
-          
+
           List<Post> posts = [];
           if (state is VideoExplorePostsLoaded) {
-            posts = state.posts.where((post) => post.type == PostType.video).toList();
+            posts = state.posts
+                .where((post) => post.type == PostType.video)
+                .toList();
           }
-          
+
           if (posts.isEmpty) {
             return const Center(
               child: Text(
@@ -126,7 +155,7 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
               ),
             );
           }
-          
+
           return Stack(
             children: [
               PageView.builder(
@@ -136,13 +165,13 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                 itemCount: posts.length,
                 itemBuilder: (context, index) {
                   final post = posts[index];
-                  
+
                   return Stack(
                     fit: StackFit.expand,
                     children: [
                       // Video Player
-                      _videoControllers.containsKey(index) && 
-                      _videoControllers[index]!.value.isInitialized
+                      _videoControllers.containsKey(index) &&
+                              _videoControllers[index]!.value.isInitialized
                           ? GestureDetector(
                               onTap: () {
                                 if (_videoControllers[index]!.value.isPlaying) {
@@ -155,11 +184,12 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                               child: VideoPlayer(_videoControllers[index]!),
                             )
                           : const Center(
-                              child: CircularProgressIndicator(color: Colors.white),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white),
                             ),
-                      
+
                       // Video Controls Overlay
-                      if (_videoControllers.containsKey(index) && 
+                      if (_videoControllers.containsKey(index) &&
                           !_videoControllers[index]!.value.isPlaying)
                         Center(
                           child: Icon(
@@ -168,28 +198,56 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                             color: Colors.white.withOpacity(0.7),
                           ),
                         ),
-                      
-                      // Video Info Overlay
+
+                      // Video Info Overlay (top)
                       Positioned(
-                        bottom: 80,
-                        left: 10,
-                        right: 10,
+                        top: 40,
+                        left: 16,
+                        right: 16,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Author info
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    post.description != null &&
+                                            post.description!.isNotEmpty
+                                        ? post.description!.split('\n').first
+                                        : 'Video Title',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down,
+                                    color: Colors.white),
+                                IconButton(
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.white),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
                                 CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: post.author?.profileImageUrl != null
-                                      ? NetworkImage(post.author!.profileImageUrl!)
-                                      : null,
+                                  radius: 16,
+                                  backgroundImage:
+                                      post.author?.profileImageUrl != null
+                                          ? NetworkImage(
+                                              post.author!.profileImageUrl!)
+                                          : null,
                                   child: post.author?.profileImageUrl == null
                                       ? const Icon(Icons.person)
                                       : null,
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 Text(
                                   post.author?.username ?? 'Unknown',
                                   style: const TextStyle(
@@ -197,36 +255,125 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 OutlinedButton(
-                                  onPressed: () {
-                                    // Follow user logic
-                                  },
+                                  onPressed: () {},
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
                                     side: const BorderSide(color: Colors.white),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
                                   ),
                                   child: const Text('Follow'),
                                 ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  post.createdAt != null
+                                      ? _formatDate(post.createdAt!)
+                                      : 'Sep 13',
+                                  style: const TextStyle(
+                                      color: Colors.white70, fontSize: 12),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            // Description
-                            if (post.description != null && post.description!.isNotEmpty)
-                              Text(
-                                post.description!,
-                                style: const TextStyle(color: Colors.white),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
                           ],
                         ),
                       ),
-                      
+
+                      // Views and comments count (bottom left)
+                      Positioned(
+                        left: 16,
+                        bottom: 60,
+                        child: Row(
+                          children: [
+                            Text(
+                              '${post.likeCount + 37256} views',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 14),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${post.commentCount} comments',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Up Next button (bottom right)
+                      Positioned(
+                        right: 16,
+                        bottom: 60,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.15),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                          ),
+                          onPressed: () {},
+                          child: const Text('Up Next'),
+                        ),
+                      ),
+
+                      // Video progress bar and duration (bottom)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 24,
+                        child: _videoControllers.containsKey(index) &&
+                                _videoControllers[index]!.value.isInitialized
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: Slider(
+                                      value: _videoControllers[index]!
+                                          .value
+                                          .position
+                                          .inSeconds
+                                          .toDouble(),
+                                      min: 0,
+                                      max: _videoControllers[index]!
+                                          .value
+                                          .duration
+                                          .inSeconds
+                                          .toDouble(),
+                                      onChanged: (value) {
+                                        _videoControllers[index]!.seekTo(
+                                            Duration(seconds: value.toInt()));
+                                        setState(() {});
+                                      },
+                                      activeColor: Colors.white,
+                                      inactiveColor: Colors.white24,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 16.0),
+                                    child: Text(
+                                      _formatDuration(_videoControllers[index]!
+                                              .value
+                                              .position) +
+                                          ' / ' +
+                                          _formatDuration(
+                                              _videoControllers[index]!
+                                                  .value
+                                                  .duration),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 12),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      // ...existing code...
+
                       // Action Buttons
                       Positioned(
                         right: 10,
@@ -245,22 +392,23 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                                 size: 30,
                               ),
                               onPressed: () {
-                                final currentUser = Supabase.instance.client.auth.currentUser;
+                                final currentUser =
+                                    Supabase.instance.client.auth.currentUser;
                                 if (currentUser != null) {
                                   if (post.isLikedByCurrentUser) {
                                     context.read<PostBloc>().add(
-                                      UnlikePostEvent(
-                                        postId: post.id,
-                                        userId: currentUser.id,
-                                      ),
-                                    );
+                                          UnlikePostEvent(
+                                            postId: post.id,
+                                            userId: currentUser.id,
+                                          ),
+                                        );
                                   } else {
                                     context.read<PostBloc>().add(
-                                      LikePostEvent(
-                                        postId: post.id,
-                                        userId: currentUser.id,
-                                      ),
-                                    );
+                                          LikePostEvent(
+                                            postId: post.id,
+                                            userId: currentUser.id,
+                                          ),
+                                        );
                                   }
                                 }
                               },
@@ -270,7 +418,7 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                               style: const TextStyle(color: Colors.white),
                             ),
                             const SizedBox(height: 20),
-                            
+
                             // Comment Button
                             IconButton(
                               icon: const Icon(
@@ -287,7 +435,7 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                               style: const TextStyle(color: Colors.white),
                             ),
                             const SizedBox(height: 20),
-                            
+
                             // Share Button
                             IconButton(
                               icon: const Icon(
@@ -310,11 +458,12 @@ class _VideoExploreScreenState extends State<VideoExploreScreen> {
                   );
                 },
               ),
-              
+
               // Top Navigation Bar
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

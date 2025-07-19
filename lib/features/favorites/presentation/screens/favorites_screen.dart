@@ -2,17 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram_clone/features/favorites/domain/entities/favorite.dart';
 import 'package:instagram_clone/features/favorites/presentation/bloc/favorite_bloc.dart';
+import 'package:instagram_clone/core/di/injection_container.dart' as di;
 
-class FavoritesScreen extends StatefulWidget {
+class FavoritesScreen extends StatelessWidget {
   final String userId;
 
   const FavoritesScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<FavoritesScreen> createState() => _FavoritesScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<FavoriteBloc>(
+      create: (_) => di.sl<FavoriteBloc>(),
+      child: _FavoritesScreenContent(userId: userId),
+    );
+  }
 }
 
-class _FavoritesScreenState extends State<FavoritesScreen> {
+class _FavoritesScreenContent extends StatefulWidget {
+  final String userId;
+  const _FavoritesScreenContent({Key? key, required this.userId})
+      : super(key: key);
+
+  @override
+  State<_FavoritesScreenContent> createState() =>
+      _FavoritesScreenContentState();
+}
+
+class _FavoritesScreenContentState extends State<_FavoritesScreenContent> {
   @override
   void initState() {
     super.initState();
@@ -32,7 +48,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               SnackBar(content: Text(state.message)),
             );
           } else if (state is PostUnsaved) {
-            // Refresh favorites after unsaving a post
             context
                 .read<FavoriteBloc>()
                 .add(LoadFavoritesEvent(userId: widget.userId));

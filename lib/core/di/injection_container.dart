@@ -25,6 +25,7 @@ import '../../features/notifications/di/notification_injection.dart'
 // Settings feature imports
 import '../../features/settings/di/settings_injection.dart'
     as settings_injection;
+import '../../features/feed/di/feed_injection.dart' as feed_injection;
 
 final sl = GetIt.instance;
 
@@ -43,13 +44,15 @@ Future<void> init() async {
   favorite_injection.registerFavoriteDependencies(sl);
   notification_injection.registerNotificationDependencies(sl);
   settings_injection.registerSettingsDependencies(sl);
-
-  // --- Core ---
-  // Register core components like NetworkInfo if needed
-  // e.g., sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-
-  // --- External Dependencies ---
-  // Register external packages like http client or connectivity checker if needed
-  // e.g., sl.registerLazySingleton(() => http.Client());
-  // e.g., sl.registerLazySingleton(() => InternetConnectionChecker());
+  // Register Feed feature
+  await feed_injection.initFeedDependencies();
 }
+
+// --- Core ---
+// Register core components like NetworkInfo if needed
+// e.g., sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+// --- External Dependencies ---
+// Register external packages like http client or connectivity checker if needed
+// e.g., sl.registerLazySingleton(() => http.Client());
+// e.g., sl.registerLazySingleton(() => InternetConnectionChecker());
