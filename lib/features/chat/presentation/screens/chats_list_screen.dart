@@ -31,16 +31,19 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
   }
 
   void _subscribeToChats() {
-    context.read<ChatBloc>().add(SubscribeToChatsEvent(userId: widget.currentUser.id));
+    context
+        .read<ChatBloc>()
+        .add(SubscribeToChatsEvent(userId: widget.currentUser.id));
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
+    print('Building ChatsListScreen');
+    final l10n = AppLocalizations.of(context);
+    print('AppLocalizations: $l10n');
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.messages),
+        title: Text(l10n?.messages ?? 'Messages'),
       ),
       body: BlocConsumer<ChatBloc, ChatState>(
         listener: (context, state) {
@@ -51,47 +54,62 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
           }
         },
         builder: (context, state) {
+          print('ChatBloc state: $state');
           if (state is ChatsLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ChatsLoaded) {
-            return _buildChatsList(state.chats);
+            return _buildChatsList(state.chats, l10n);
           } else {
-            return _buildChatsList([]);
+            return _buildChatsList([], l10n);
           }
         },
       ),
     );
   }
 
-  Widget _buildChatsList(List<Chat> chats) {
-    final l10n = AppLocalizations.of(context)!;
-    
+  Widget _buildChatsList(List<Chat> chats, AppLocalizations? l10n) {
+    print('Building chat list with count: ${chats.length}');
     if (chats.isEmpty) {
       return Center(
-        child: Text(l10n.noMessages),
+        child: Text(l10n?.noMessages ?? 'No messages'),
       );
     }
-
     return ListView.builder(
       itemCount: chats.length,
       itemBuilder: (context, index) {
         final chat = chats[index];
+        print('chat: $chat');
         final otherUser = chat.otherUser;
-        
+        print('otherUser for chat ${chat.id}: $otherUser');
+        if (chat.id == null) {
+          return ListTile(
+            leading: const Icon(Icons.error, color: Colors.red),
+            title: const Text('Invalid chat'),
+            subtitle: const Text('Chat ID is missing'),
+          );
+        }
+        if (otherUser == null) {
+          return ListTile(
+            leading: const Icon(Icons.error, color: Colors.red),
+            title: const Text('Unknown user'),
+            subtitle: const Text('User data is missing'),
+          );
+        }
         return ListTile(
           leading: CircleAvatar(
-            backgroundImage: otherUser?.profileImageUrl != null
-                ? NetworkImage(otherUser!.profileImageUrl!)
+            backgroundImage: otherUser.profileImageUrl != null
+                ? NetworkImage(otherUser.profileImageUrl!)
                 : null,
-            child: otherUser?.profileImageUrl == null
+            child: otherUser.profileImageUrl == null
                 ? const Icon(Icons.person)
                 : null,
           ),
-          title: Text(otherUser?.username ?? 'Unknown User'),
+          title: Text(otherUser.username ?? 'Unknown User'),
           subtitle: Text(
             chat.hasUnreadMessages ? 'New messages' : 'No new messages',
             style: TextStyle(
-              fontWeight: chat.hasUnreadMessages ? FontWeight.bold : FontWeight.normal,
+              fontWeight:
+                  chat.hasUnreadMessages ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           trailing: chat.hasUnreadMessages
@@ -105,6 +123,7 @@ class _ChatsListScreenState extends State<ChatsListScreen> {
                 )
               : null,
           onTap: () {
+            print('Tapped chat: ${chat.id}');
             Navigator.push(
               context,
               MaterialPageRoute(

@@ -44,28 +44,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _subscribeToMessages() {
-    context.read<ChatBloc>().add(SubscribeToMessagesEvent(chatId: widget.chat.id));
+    context
+        .read<ChatBloc>()
+        .add(SubscribeToMessagesEvent(chatId: widget.chat.id));
   }
 
   void _markMessagesAsRead() {
     context.read<ChatBloc>().add(MarkMessagesAsReadEvent(
-      chatId: widget.chat.id,
-      userId: widget.currentUser.id,
-    ));
+          chatId: widget.chat.id,
+          userId: widget.currentUser.id,
+        ));
   }
 
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
     context.read<ChatBloc>().add(SendMessageEvent(
-      chatId: widget.chat.id,
-      senderId: widget.currentUser.id,
-      receiverId: widget.chat.otherUser?.id ?? 
-                 (widget.chat.user1Id == widget.currentUser.id 
-                  ? widget.chat.user2Id 
+          chatId: widget.chat.id,
+          senderId: widget.currentUser.id,
+          receiverId: widget.chat.otherUser?.id ??
+              (widget.chat.user1Id == widget.currentUser.id
+                  ? widget.chat.user2Id
                   : widget.chat.user1Id),
-      content: _messageController.text.trim(),
-    ));
+          content: _messageController.text.trim(),
+        ));
 
     _messageController.clear();
   }
@@ -82,8 +84,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
+    final l10n = AppLocalizations.of(context);
+    print('AppLocalizations: $l10n');
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.chat.otherUser?.username ?? 'Chat'),
@@ -101,7 +104,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.message)),
                   );
-                } else if (state is NewMessageReceived || state is MessagesLoaded) {
+                } else if (state is NewMessageReceived ||
+                    state is MessagesLoaded) {
                   // Scroll to bottom when new messages arrive or messages are loaded
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToBottom();
@@ -121,7 +125,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               },
             ),
           ),
-          _buildMessageInput(l10n),
+          _buildMessageInput(l10n ?? AppLocalizationsEn()),
         ],
       ),
     );
@@ -130,7 +134,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget _buildMessagesList(List<Message> messages) {
     if (messages.isEmpty) {
       return Center(
-        child: Text(AppLocalizations.of(context)!.noMessages),
+        child: Text(AppLocalizations.of(context)?.noMessages ?? 'No messages'),
       );
     }
 
@@ -143,10 +147,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         final isCurrentUser = message.senderId == widget.currentUser.id;
 
         return Align(
-          alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+          alignment:
+              isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 4.0),
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             decoration: BoxDecoration(
               color: isCurrentUser ? Colors.blue : Colors.grey[300],
               borderRadius: BorderRadius.circular(16.0),
@@ -229,4 +235,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String _formatTime(DateTime dateTime) {
     return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
+}
+
+// Add a fallback AppLocalizationsEn class for English strings
+class AppLocalizationsEn implements AppLocalizations {
+  @override
+  String get noMessages => 'No messages';
+  // Implement all other getters to throw UnimplementedError
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

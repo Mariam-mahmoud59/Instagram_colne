@@ -8,6 +8,8 @@ import 'package:instagram_clone/features/feed/presentation/bloc/feed_event.dart'
 import 'package:instagram_clone/features/explore/presentation/bloc/explore_bloc.dart';
 import 'package:instagram_clone/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:instagram_clone/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:instagram_clone/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -44,6 +46,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ProfileBloc>(
           create: (_) => di.sl<ProfileBloc>(),
+        ),
+        BlocProvider<ChatBloc>(
+          create: (_) => di.sl<ChatBloc>(),
         ),
       ],
       child: AppView(), // Your main App view widget

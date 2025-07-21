@@ -9,6 +9,8 @@ import 'package:instagram_clone/features/profile/presentation/bloc/profile_bloc.
 import 'package:instagram_clone/features/profile/presentation/screens/profile_screen.dart';
 import 'package:instagram_clone/features/common_widgets/app_bar.dart';
 import 'package:instagram_clone/core/di/injection_container.dart' as di;
+import 'package:instagram_clone/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:instagram_clone/features/chat/presentation/screens/chats_list_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -23,7 +25,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
-  // قائمة الشاشات لتجنب إعادة بنائها في كل مرة
   late final List<Widget> _screens;
 
   @override
@@ -43,9 +44,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       curve: Curves.easeInOut,
     ));
 
-    // تهيئة قائمة الشاشات مرة واحدة
-    // هذا يتطلب أن يكون state.user متاحاً هنا، سنقوم بتمريره لاحقاً
-    // في هذا المثال، سنقوم ببناء ProfileScreen داخل BlocBuilder
   }
 
   @override
@@ -67,8 +65,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
   @override
   Widget build(BuildContext context) {
-    // **التعديل الأول: إضافة SafeArea حول BlocConsumer**
-    // هذا يضمن أن التطبيق بأكمله (بما في ذلك شاشة التحميل) لا يتداخل مع شريط الحالة
+
     return SafeArea(
       child: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -100,7 +97,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                         const FeedScreen(),
                         const CreatePostScreen(),
                         VideoExploreTab(),
-                        // لا يزال من الضروري حل مشكلة get_it هنا
                         BlocProvider<ProfileBloc>(
                           create: (_) => di.sl<ProfileBloc>(),
                           child: ProfileScreen(userId: user.id),
@@ -132,9 +128,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     // بناء AppBar بناءً على الشاشة المحددة
     switch (index) {
       case 0: // Feed Screen
-        return const CustomAppBar(
+        return CustomAppBar(
           title: 'Instagram',
           showDefaultActions: true,
+          onMessagesTap: () {
+            final authState = BlocProvider.of<AuthBloc>(context).state;
+            if (authState is Authenticated) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider<ChatBloc>.value(
+                    value: context.read<ChatBloc>(),
+                    child: ChatsListScreen(currentUser: authState.user),
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('You must be logged in to view messages.')),
+              );
+            }
+          },
         );
       case 1: // Create Post Screen
         return const CustomAppBar(

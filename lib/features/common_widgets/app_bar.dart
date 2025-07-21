@@ -3,6 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/features/explore/presentation/screens/search_screen.dart';
 import 'package:instagram_clone/features/post/presentation/screens/create_post_screen.dart';
+import 'package:instagram_clone/features/chat/presentation/screens/chats_list_screen.dart'; // Corrected import for ChatsListScreen
+import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart'; // Added import for AuthBloc
+import 'package:flutter_bloc/flutter_bloc.dart'; // Added import for BlocProvider
+import 'package:instagram_clone/features/auth/domain/entities/user.dart'; // Added import for User entity
+import 'package:instagram_clone/features/chat/presentation/bloc/chat_bloc.dart'; // Added import for ChatBloc
+import 'package:instagram_clone/features/favorites/presentation/screens/favorites_screen.dart';
+import 'package:instagram_clone/features/explore/presentation/screens/explore_screen.dart';
+import 'package:instagram_clone/features/notifications/presentation/screens/notifications_screen.dart'; // Added import for NotificationsScreen
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -12,6 +20,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showDefaultActions;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
+  final VoidCallback? onMessagesTap; // New callback for messages icon
 
   const CustomAppBar({
     Key? key,
@@ -22,46 +31,89 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showDefaultActions = true,
     this.showBackButton = false,
     this.onBackPressed,
+    this.onMessagesTap, // Add to constructor
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final defaultActions = [
-      // Add Post Icon
-      _buildAppBarIcon(
-        icon: Icons.add_box_outlined,
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const CreatePostScreen(),
-            ),
-          );
-        },
-      ),
-      
-      const SizedBox(width: 8),
-      
+      //
+      // _buildAppBarIcon(
+      //   icon: Icons.add_box_outlined,
+      //   onTap: () {
+      //     Navigator.of(context).push(
+      //       MaterialPageRoute(
+      //         builder: (_) => const CreatePostScreen(),
+      //       ),
+      //     );
+      //   },
+      // ),
+      // const SizedBox(width: 8),
+
       // Activity/Notifications Icon
       _buildAppBarIcon(
         icon: Icons.favorite_border,
         onTap: () {
-          // Navigate to activity/notifications screen
-          _showNotificationsBottomSheet(context);
+          final authState = BlocProvider.of<AuthBloc>(context).state;
+          if (authState is Authenticated) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FavoritesScreen(userId: authState.user.id),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('You must be logged in to view favorites.')),
+            );
+          }
         },
       ),
-      
+
       const SizedBox(width: 8),
-      
+
       // Messages Icon
       _buildAppBarIcon(
         icon: Icons.send_outlined,
-        onTap: () {
-          // Navigate to messages screen
-          _showMessagesBottomSheet(context);
-        },
+        onTap: onMessagesTap ?? () {}, // Use the callback if provided
         rotation: 0.3, // Instagram's signature rotation
       ),
-      
+
+      const SizedBox(width: 8),
+
+      // Explore/Search Icon
+      _buildAppBarIcon(
+        icon: Icons.search,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const SearchScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(width: 8),
+
+      // Notifications Icon
+      _buildAppBarIcon(
+        icon: Icons.notifications_none,
+        onTap: () {
+          final authState = BlocProvider.of<AuthBloc>(context).state;
+          if (authState is Authenticated) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => NotificationsScreen(),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content:
+                      Text('You must be logged in to view notifications.')),
+            );
+          }
+        },
+      ),
       const SizedBox(width: 8),
     ];
 
@@ -88,9 +140,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       icon: Icons.arrow_back,
                       onTap: onBackPressed ?? () => Navigator.of(context).pop(),
                     ),
-              
+
               if (showBackButton || leading != null) const SizedBox(width: 16),
-              
+
               // Title
               if (!centerTitle)
                 Expanded(
@@ -105,7 +157,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 ),
-              
+
               if (centerTitle) ...[
                 const Spacer(),
                 Text(
@@ -120,7 +172,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 const Spacer(),
               ],
-              
+
               // Actions
               if (showDefaultActions)
                 Row(
@@ -192,9 +244,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             const Text(
               'Activity',
               style: TextStyle(
@@ -203,9 +255,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: Color(0xFF262626),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Expanded(
               child: ListView(
                 children: [
@@ -260,9 +312,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             const Text(
               'Messages',
               style: TextStyle(
@@ -271,9 +323,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: Color(0xFF262626),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             Expanded(
               child: ListView(
                 children: [
@@ -327,9 +379,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               size: 20,
             ),
           ),
-          
           const SizedBox(width: 12),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,9 +432,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               size: 20,
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +445,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       name,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight:
+                            isUnread ? FontWeight.w600 : FontWeight.w400,
                         color: const Color(0xFF262626),
                       ),
                     ),
@@ -414,14 +465,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   message,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isUnread ? const Color(0xFF262626) : const Color(0xFF8E8E8E),
+                    color: isUnread
+                        ? const Color(0xFF262626)
+                        : const Color(0xFF8E8E8E),
                     fontWeight: isUnread ? FontWeight.w500 : FontWeight.w400,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           if (isUnread)
             Container(
               width: 8,
@@ -441,7 +494,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 // Instagram-style Search AppBar
-class InstagramSearchAppBar extends StatelessWidget implements PreferredSizeWidget {
+class InstagramSearchAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final TextEditingController? searchController;
   final Function(String)? onSearchChanged;
   final VoidCallback? onBackPressed;
@@ -482,9 +536,7 @@ class InstagramSearchAppBar extends StatelessWidget implements PreferredSizeWidg
                   ),
                 ),
               ),
-              
               const SizedBox(width: 16),
-              
               Expanded(
                 child: Container(
                   height: 36,
@@ -529,6 +581,3 @@ class InstagramSearchAppBar extends StatelessWidget implements PreferredSizeWidg
   @override
   Size get preferredSize => const Size.fromHeight(60);
 }
-
-
-

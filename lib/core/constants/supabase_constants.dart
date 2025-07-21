@@ -3,12 +3,12 @@
 class SupabaseConstants {
   // Supabase Project URL
   // IMPORTANT: Replace with your actual Supabase Project URL
-  static const String supabaseUrl = 'https://lniihypopmejztjrqqry.supabase.co'; 
+  static const String supabaseUrl = 'https://zcoucxuepybjcrwqpojx.supabase.co'; 
  
 
   // Supabase Anon Key
   // IMPORTANT: Replace with your actual Supabase Anon Key
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuaWloeXBvcG1lanp0anJxcXJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Nzg2NTcyNiwiZXhwIjoyMDYzNDQxNzI2fQ.sAaVr4kUnlWm1r2TTJVQ223mVUVMChLttnmCCf0YRao'; 
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjb3VjeHVlcHliamNyd3Fwb2p4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NDExNCwiZXhwIjoyMDY4NjcwMTE0fQ.FIpNYPGf0UElua7tQxGqlDbpBG0tRjLmY5gT_CZvHfQ'; 
   // Example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiY2RlZmdoaWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzgwMDc2NzcsImV4cCI6MTk5MzU4MzY3N30.YOUR_ANON_KEY_HERE'
 
   // Supabase Table Names (examples - adjust based on your database schema )
