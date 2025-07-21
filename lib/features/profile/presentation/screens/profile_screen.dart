@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:instagram_clone/core/di/injection_container.dart';
 import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:instagram_clone/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:instagram_clone/features/profile/presentation/screens/edit_profile_screen.dart'; // To be created
+import 'package:instagram_clone/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:instagram_clone/features/settings/presentation/screens/settings_screen.dart';
 import 'package:instagram_clone/features/common_widgets/app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // For network images
@@ -72,7 +74,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => SettingsScreen(userId: widget.userId),
+                    builder: (_) => BlocProvider(
+                      create: (_) => sl<SettingsBloc>(),
+                      child: SettingsScreen(userId: widget.userId),
+                    ),
                   ),
                 );
               },
@@ -146,7 +151,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(profile.bio!),
                           ),
-                        
                       ],
                     ),
                   ),

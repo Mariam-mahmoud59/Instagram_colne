@@ -22,157 +22,138 @@ class FeedItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 0.5,
+    return Container(
+      color: Colors.black,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: User Info and Options
+          // Instagram AppBar
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               children: [
-                UserAvatar(
-                  imageUrl: feedItem.user.profilePictureUrl,
-                  radius: 18,
-                  onTap: () {
-                    // Navigate to user profile
-                    // Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProfileScreen(userId: feedItem.user.id)));
-                  },
-                ),
+                Text('Instagram',
+                    style: TextStyle(
+                        fontFamily: 'Billabong',
+                        fontSize: 32,
+                        color: Colors.white)),
+                const Spacer(),
+                Icon(Icons.favorite_border, color: Colors.white),
+                const SizedBox(width: 16),
+                Icon(Icons.send, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    feedItem.user.username ?? feedItem.user.email,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  onPressed: () {
-                    // Show post options (report, unfollow, etc.)
-                  },
-                ),
+                Icon(Icons.add_circle_outline, color: Colors.white),
               ],
             ),
           ),
-
-          // Media Content (Image or Video)
-          GestureDetector(
-            onDoubleTap: () {
-              // Implement like on double tap
-              onLikeToggle(feedItem.id, true,
-                  feedItem.likesCount + 1); // Assuming it's not liked yet
-            },
-            onTap: () => onPostTap(feedItem.id),
-            child: AspectRatio(
-              aspectRatio: 1.0, // Square aspect ratio for posts
-              child: feedItem.mediaType == 'video'
-                  ? VideoPlayerWidget(videoUrl: feedItem.mediaUrl)
-                  : Image.network(
-                      feedItem.mediaUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Center(
-                              child: Icon(Icons.broken_image, size: 50)),
+          // Stories Bar
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 6,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, i) => Column(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.red,
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundImage:
+                          NetworkImage(feedItem.user.profilePictureUrl ?? ''),
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Story',
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                ],
+              ),
             ),
           ),
-
-          // Actions (Like, Comment, Share, Save)
-          PostActions(
-            postId: feedItem.id,
-            userId: feedItem.user.id,
-            post: feedItem.toPost(),
-            isLiked: false, // You'll need to pass actual like status
-            likesCount: feedItem.likesCount,
-            onLikeToggle: onLikeToggle,
-            onComment: () {
-              // Navigate to comments screen
-            },
-            onShare: () {
-              // Implement share functionality
-            },
-          ),
-
-          // Likes Count
+          // Post Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Text(
-              '${feedItem.likesCount} likes',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 4),
-
-          // Caption
-          if (feedItem.caption != null && feedItem.caption!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: RichText(
-                text: TextSpan(
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  children: [
-                    TextSpan(
-                      text: '${feedItem.user.username ?? 'Unknown User'} ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: feedItem.caption ?? ''),
-                  ],
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundImage:
+                      NetworkImage(feedItem.user.profilePictureUrl ?? ''),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(feedItem.user.username ?? '',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+                Icon(Icons.more_vert, color: Colors.white),
+              ],
             ),
-          const SizedBox(height: 4),
-
-          // View all comments (placeholder)
+          ),
+          // Media Content
+          AspectRatio(
+            aspectRatio: 1.0,
+            child: feedItem.mediaType == 'video'
+                ? Container(color: Colors.black)
+                : Image.network(feedItem.mediaUrl, fit: BoxFit.cover),
+          ),
+          // Sponsored CTA Bar
+          Container(
+            width: double.infinity,
+            color: Colors.blue,
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            child: Row(
+              children: [
+                Expanded(
+                    child: Text('CTA copy here',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold))),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+              ],
+            ),
+          ),
+          // Likes and Caption
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+            child: Text('100 Likes',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: GestureDetector(
-              onTap: () {
-                // Navigate to comments screen
-              },
-              child: Text(
-                'View all ${feedItem.commentsCount} comments',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey[600]),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(color: Colors.white),
+                children: [
+                  TextSpan(
+                      text: 'Username ',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: 'Lorem ipsum dolor sit amet, consectetur'),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 4),
-
-          // Time Ago
+          // Icon Row
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Text(
-              timeago.format(feedItem.createdAt),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey[600]),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Icon(Icons.favorite_border, color: Colors.white),
+                const SizedBox(width: 16),
+                Icon(Icons.comment_outlined, color: Colors.white),
+                const SizedBox(width: 16),
+                Icon(Icons.send, color: Colors.white),
+                const Spacer(),
+                Icon(Icons.bookmark_border, color: Colors.white),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
         ],
       ),
     );

@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram_clone/features/common_widgets/error_widget.dart';
 import 'package:instagram_clone/features/common_widgets/loading_indicator.dart';
-import 'package:instagram_clone/features/post/presentation/screens/post_detail_screen.dart'; // To navigate to post details
+import 'package:instagram_clone/features/post/presentation/screens/post_detail_screen.dart';
 import 'package:instagram_clone/features/explore/presentation/screens/search_screen.dart';
-import 'package:instagram_clone/features/common_widgets/app_bar.dart';
 import '../bloc/feed_bloc.dart';
 import '../bloc/feed_event.dart';
 import '../bloc/feed_state.dart';
@@ -64,49 +63,77 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(),
-      body: Column(
-        children: [
-          // قصص دائرية في الأعلى
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: FeedStoriesBar(),
+    return Column(
+      children: [
+        // Stories Section - Clean design without any app bar elements
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(
+                color: Color(0xFFDBDBDB),
+                width: 0.5,
+              ),
+            ),
           ),
-          // منشورات مربعة
-          Expanded(
-            child: FeedRefreshIndicator(
-              onRefresh: _onRefresh,
-              child: BlocBuilder<FeedBloc, FeedState>(
-                builder: (context, state) {
-                  if (state is FeedLoading && _currentPage == 0) {
-                    return const LoadingIndicator();
-                  } else if (state is FeedError) {
-                    return CustomErrorWidget(
-                      message: state.message,
-                      onRetry: () =>
-                          context.read<FeedBloc>().add(const LoadFeed(page: 0)),
-                    );
-                  } else if (state is FeedLoaded) {
-                    if (state.feedItems.isEmpty) {
-                      return const Center(
-                          child: Text(
-                              'No posts in your feed. Follow more people!'));
-                    }
-                    return ListView.builder(
-                      controller: _scrollController,
-                      itemCount: state.feedItems.length +
-                          (state.hasReachedMax ? 0 : 1),
-                      itemBuilder: (context, index) {
-                        final isLast = index == state.feedItems.length;
-                        if (isLast && !state.hasReachedMax) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.0),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        final feedItem = state.feedItems[index];
-                        return FeedItemCard(
+          child:  FeedStoriesBar(),
+        ),
+        
+        // Feed Posts
+        Expanded(
+          child: FeedRefreshIndicator(
+            onRefresh: _onRefresh,
+            child: BlocBuilder<FeedBloc, FeedState>(
+              builder: (context, state) {
+                if (state is FeedLoading && _currentPage == 0) {
+                  return const LoadingIndicator();
+                } else if (state is FeedError) {
+                  return CustomErrorWidget(
+                    message: state.message,
+                    onRetry: () =>
+                        context.read<FeedBloc>().add(const LoadFeed(page: 0)),
+                  );
+                } else if (state is FeedLoaded) {
+                  if (state.feedItems.isEmpty) {
+                    return _buildEmptyFeedState();
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: state.feedItems.length +
+                        (state.hasReachedMax ? 0 : 1),
+                    itemBuilder: (context, index) {
+                      final isLast = index == state.feedItems.length;
+                      if (isLast && !state.hasReachedMax) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(vertical: 20.0),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF262626),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      final feedItem = state.feedItems[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 0),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Color(0xFFDBDBDB),
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        child: FeedItemCard(
                           feedItem: feedItem,
                           onPostTap: (postId) {
                             Navigator.of(context).push(
@@ -125,12 +152,96 @@ class _FeedScreenState extends State<FeedScreen> {
                                   ),
                                 );
                           },
-                        );
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyFeedState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: const Color(0xFF262626),
+                width: 2,
+              ),
+            ),
+            child: const Icon(
+              Icons.camera_alt_outlined,
+              size: 48,
+              color: Color(0xFF262626),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          const Text(
+            'Welcome to Instagram',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w300,
+              color: Color(0xFF262626),
+            ),
+          ),
+          
+          const SizedBox(height: 8),
+          
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'When you follow people, you\'ll see the photos and videos they post here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF8E8E8E),
+                height: 1.4,
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Find People Button
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const SearchScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0095F6),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                minimumSize: const Size(double.infinity, 44),
+              ),
+              child: const Text(
+                'Find People to Follow',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),

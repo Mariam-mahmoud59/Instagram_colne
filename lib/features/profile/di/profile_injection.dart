@@ -9,25 +9,25 @@ import '../data/repositories/profile_repository_impl.dart'
 import '../domain/repositories/profile_repository.dart';
 import '../domain/usecases/get_user_profile.dart';
 import '../domain/usecases/get_profile.dart';
-import '../domain/usecases/update_user_profile.dart';
+import '../domain/usecases/update_profile.dart';
 import '../domain/usecases/get_user_posts.dart'; // If user posts are managed by profile feature
 import '../presentation/bloc/profile_bloc.dart';
 
 /// Registers all the dependencies for the Profile feature.
 void initProfile(GetIt sl) {
-  // Bloc
+  // Use cases
+  sl.registerLazySingleton<GetProfile>(() => GetProfile(sl()));
+  sl.registerLazySingleton(() => GetUserProfile(sl()));
+  sl.registerLazySingleton<UpdateProfile>(() => UpdateProfile(sl()));
+  sl.registerLazySingleton(() => GetUserPosts(sl()));
+
+  // Bloc (register after use cases)
   sl.registerFactory(
     () => ProfileBloc(
       getProfile: sl(),
       updateProfile: sl(),
     ),
   );
-
-  // Use cases
-  sl.registerLazySingleton<GetProfile>(() => GetProfile(sl()));
-  sl.registerLazySingleton(() => GetUserProfile(sl()));
-  sl.registerLazySingleton(() => UpdateUserProfile(sl()));
-  sl.registerLazySingleton(() => GetUserPosts(sl()));
 
   // Repository
   sl.registerLazySingleton<ProfileRepository>(
