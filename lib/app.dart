@@ -3,9 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram_clone/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:instagram_clone/features/auth/presentation/screens/login_screen.dart';
 import 'package:instagram_clone/features/auth/presentation/screens/splash_screen.dart';
-import 'package:instagram_clone/features/feed/presentation/screens/feed_screen.dart';
-import 'package:instagram_clone/features/feed/presentation/bloc/feed_bloc.dart';
-import 'package:instagram_clone/core/di/injection_container.dart' as di;
 import 'package:instagram_clone/features/common_widgets/main_navigation_screen.dart';
 
 class AppView extends StatelessWidget {
