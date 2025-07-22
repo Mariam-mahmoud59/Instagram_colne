@@ -20,8 +20,7 @@ class FavoritesScreen extends StatelessWidget {
 
 class _FavoritesScreenContent extends StatefulWidget {
   final String userId;
-  const _FavoritesScreenContent({Key? key, required this.userId})
-      : super(key: key);
+  const _FavoritesScreenContent({required this.userId});
 
   @override
   State<_FavoritesScreenContent> createState() =>
@@ -75,19 +74,22 @@ class _FavoritesScreenContentState extends State<_FavoritesScreenContent>
           }
         },
         builder: (context, state) {
-          if (state is FavoritesError && state is! FavoritesLoaded) {
-            return _buildLoadingState(isDark);
+          if (state is FavoritesLoading) {
+            return const Center(child: CircularProgressIndicator());
           } else if (state is FavoritesLoaded) {
             final favorites = state.favorites;
-
             if (favorites.isEmpty) {
               return _buildEmptyState(isDark);
             }
-
             return _buildFavoritesList(favorites, isDark);
-          } else {
-            return _buildErrorState(isDark);
+          } else if (state is FavoritesError) {
+            return Center(
+                child:
+                    Text(state.message, style: TextStyle(color: Colors.red)));
           }
+          // fallback for any other state
+          return Center(
+              child: Text('No data.', style: TextStyle(color: Colors.grey)));
         },
       ),
     );

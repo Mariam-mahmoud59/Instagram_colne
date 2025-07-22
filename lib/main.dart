@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:instagram_clone/app.dart';
 import 'package:instagram_clone/core/constants/supabase_constants.dart';
 import 'package:instagram_clone/core/di/injection_container.dart' as di;
+import 'package:instagram_clone/features/favorites/presentation/bloc/favorite_bloc.dart';
 import 'package:instagram_clone/features/feed/presentation/bloc/feed_bloc.dart';
 import 'package:instagram_clone/features/feed/presentation/bloc/feed_event.dart';
 import 'package:instagram_clone/features/explore/presentation/bloc/explore_bloc.dart';
@@ -49,6 +50,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ChatBloc>(
           create: (_) => di.sl<ChatBloc>(),
+        ),
+        BlocProvider<NotificationBloc>(
+          create: (_) => di.sl<NotificationBloc>(),
         ),
       ],
       child: AppView(), // Your main App view widget
