@@ -48,11 +48,4 @@ Future<void> init() async {
   await feed_injection.initFeedDependencies();
 }
 
-// --- Core ---
-// Register core components like NetworkInfo if needed
-// e.g., sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-// --- External Dependencies ---
-// Register external packages like http client or connectivity checker if needed
-// e.g., sl.registerLazySingleton(() => http.Client());
-// e.g., sl.registerLazySingleton(() => InternetConnectionChecker());
